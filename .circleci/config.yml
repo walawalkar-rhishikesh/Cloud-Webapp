@@ -1,0 +1,84 @@
+version: 2.1
+orbs:
+  node: circleci/node@1.1.6
+jobs:
+  build:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - run: ls
+      - run: cd api
+      - node/with-cache:
+          steps:
+            - run: cd api && npm install
+  test:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - run: cd api
+      - node/with-cache:
+          steps:
+            - run: cd api && npm install
+            - run: cd api && npm test
+  builddeploy: 
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - run: 
+          name: Install wget zip unzip curl
+          command: |
+            sudo apt install wget zip unzip curl -y
+      - run:
+          name: Install aws cli
+          command: |
+            sudo apt install unzip -y
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+            mkdir -p ~/.aws
+            aws configure set default.region us-east-1
+            aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+            aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+            aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+      - run: 
+          name: Create zip file
+          command: |
+            echo "Current directory: "`pwd`
+            mkdir -p codedeploy_artifacts
+            cd codedeploy_artifacts
+            mkdir rds_cert
+            cd rds_cert
+            curl -O  https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem
+            cd ..
+            cp -r ../api/ .
+            cp -r ../front-end/ .
+            cp -r ../scripts/ .
+            cp -r ../cloud-config/ .
+            # cp ../afterInstall.sh .
+            # cp ../applicationStart.sh .
+            # cp ../applicationStop.sh .
+            cp ../appspec.yml .
+            # cp -r ../package-lock.json .
+            cp ../README.md .
+            zip -r csye6225-webapp-${CIRCLE_BUILD_NUM}.zip .
+      - run:
+          name: Upload Artifacts to S3
+          command: |
+            ls -la
+            cd codedeploy_artifacts
+            aws configure list
+            aws s3 cp csye6225-webapp-${CIRCLE_BUILD_NUM}.zip s3://${CODE_DEPLOY_S3_BUCKET} --sse
+      - run:
+          name: Call CodeDeploy API
+          command: |
+            cd codedeploy_artifacts
+            aws deploy create-deployment --output json --application-name csye6225-webapp --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name csye6225-webapp-deployment --s3-location bucket=${CODE_DEPLOY_S3_BUCKET},bundleType=zip,key=csye6225-webapp-${CIRCLE_BUILD_NUM}.zip
+workflows:
+    pr_check:
+      jobs:
+        - build
+        - test
+        - builddeploy

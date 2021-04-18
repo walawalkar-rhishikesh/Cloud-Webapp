@@ -1,0 +1,39 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "Webapp is a small project build on Node Js, Express and MySql. This is designed to demonstrate the purpose of DevOps as a parts of csye6225 course",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha",
+    "start": "node ./server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/walawalkarr-su2020/webapp.git"
+  },
+  "keywords": [
+    "Webapp"
+  ],
+  "author": "Rhishikesh Walawalkar (walawalkar.r@northeastern.edu)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/walawalkarr-su2020/webapp/issues"
+  },
+  "homepage": "https://github.com/walawalkarr-su2020/webapp#readme",
+  "dependencies": {
+    "aws-cloudwatch-statsd-backend": "^1.2.0",
+    "aws-sdk": "^2.699.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "express": "^4.17.1",
+    "mocha": "^7.2.0",
+    "multer": "^1.4.2",
+    "multer-s3": "^2.9.0",
+    "mysql2": "^2.1.0",
+    "sequelize": "^5.21.10",
+    "statsd-client": "^0.4.5",
+    "uuid": "^8.1.0"
+  }
+}
